@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="magnify">
+        <!-- large用来显示大图 -->
+        <div class="large"></div>
+        <!-- small用来显示小图  没有放大镜的图-->
+        <img src="a.jpg"  class="small" width="320">
+    </div>
+    <script>
+        (function ($) {
+            $.fn.imageZoom = function ( options ) {
+
+                var defaults = {
+                    scaling: 0.3
+                };
+
+                // the native width and height of image 
+                options = $.extend(defaluts , options),
+                native_width = 0,
+                native_height = 0,
+                current_width = 0,
+                current_height = 0,
+                $small = $(".small"),
+                $large = $(".large");
+
+                $(".magnify").mousemove(function (e) {
+                    // Act on the event
+                    if ( !native_height && !native_width) {
+                        var image_object = new Image();
+                        image_object.src = $small.attr("src");
+
+                        // gets the image native height and width 
+                        native_height = image_object.height;
+                        native_width = image_object.width;
+
+                        // gets the images current height and width 
+                        current_height = $small.height();
+                        current_width = $small.width();
+                    } else {
+                        // gets magnify offset coordinates
+                        var magnify_offset = $(this).offset(),
+                        // gets coordinates within magnify
+                        mx = e.pagex - magnify_offset.left,
+                        my = e.pagey - magnify_offset.top;
+
+                        // checks the mouse within magnify or not 
+                        if ( mx < $(this).width() && my < $(this).height() && mx > 0 && my >0) {
+                            $large.fadeIn(100)
+                        } else {
+                            $large.fadeOut(100);
+                        }
+                    }; 
+                    if ($large.is(":visible")) {
+                        var rx = Math.round(mx / $small.width() * native_width - $large.width()/2) * -1,
+                        ry = Math.round(my / $small.height() * native_height - $large.height() / 2) * -1,
+                        bgp = rx + "px" + ry + "px",
+                        px = mx - $large.width() / 2,
+                        py = my - $large.height() / 2;
+
+                        $large.css({
+                            left: px,
+                            top: py,
+                            backgroundPosition: bgp
+                        });
+                    };
+                });
+
+        $(".magnify").bind("DOMMouseScroll mousewheel onmousewheel", function (e) {
+            var image_object = new Image();
+            image_object.src = $large.attr("src");
+
+            e = window.event || e;
+            var delta = Math.max(-1,Math.min(1,(e.wheelDelta || -e.detail)));
+
+            native_height += (native_height * defaluts.scaling * delta)
+            native_width += (native_width * defaluts.scaling * delta);
+
+            if ( native_height < current_height) {
+                native_height = current_height;
+            }
+
+            if (native_width < current_width) {
+                native_width = current_width;
+            }
+
+            var magnify_offset = $(this).offset(),
+            mx = e.pageX - magnify_offset.left,
+            my = e.pageY - magnify_offset.top;
+
+            $large.css("background-size", native_width + "px" + native_height + "px");
+
+            var rx = Math.round(mx / $small.width()*native_width - $large.width() / 2) * -1,
+            ry = Math.round(my / $small.height()*native_height - $large.height() / 2) * -1,
+            px = mx - $large.width() / 2,
+            py = my - $large.height() / 2;
+
+            $large.css({
+                left: px,
+                top: py,
+                backgroundPosition: bgp 
+            });
+        });
+        };
+        });
+    </script>
+</body>
+</html>
